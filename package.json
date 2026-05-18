@@ -1,0 +1,9 @@
+{
+  "name": "cohnfit",
+  "version": "1.0.0",
+  "description": "Personal fitness tracker with Strava sync",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  }
+}
