@@ -396,23 +396,9 @@ function renderWeek() {
     const dateStr = toDateStr(date);
     const isToday = dateStr === todayStr;
     const isPast  = date < new Date(new Date().setHours(0,0,0,0));
-    const isRest  = i === 6; // Sunday
 
     const card = document.createElement('div');
-    card.className = 'day-card' + (isToday ? ' is-today' : '') + (isPast && !isToday ? ' is-past' : '') + (isRest ? ' is-rest' : '');
-
-    if (isRest) {
-      card.innerHTML = `
-        <div class="activity-icon icon-rest">😴</div>
-        <div class="day-meta">
-          <div class="day-name">${DAY_NAMES[date.getDay()]} ${date.getDate()}</div>
-          <div class="day-activity" style="color:var(--muted)">Rest day</div>
-          <div class="day-detail">Recovery</div>
-        </div>
-        <div class="day-right"><span class="planned-pill">Rest</span></div>`;
-      list.appendChild(card);
-      return;
-    }
+    card.className = 'day-card' + (isToday ? ' is-today' : '') + (isPast && !isToday ? ' is-past' : '');
 
     const actDef   = getActivityForDate(date);
     const stravaAct = findStravaActivity(date, actDef);
@@ -475,7 +461,6 @@ function renderStats() {
   let weekCals = 0;
   let hasAny = false;
   days.forEach(date => {
-    if (date.getDay() === 0) return;
     const actDef = getActivityForDate(date);
     const act = findStravaActivity(date, actDef);
     if (act) {
@@ -486,13 +471,14 @@ function renderStats() {
   document.getElementById('stat-calories').innerHTML =
     hasAny ? weekCals.toLocaleString() + '<span class="stat-unit">kcal</span>' : '—<span class="stat-unit">kcal</span>';
 
-  // Streak: count consecutive days going back from today where activity was logged
-  // Today counts if already done; if not yet done today, don't break the streak
+  // Streak: count consecutive days from ANCHOR_DATE (May 18 2026) up to today
+  // Only counts days on/after the anchor; Sundays included; today counts if done
   const today = new Date(); today.setHours(0,0,0,0);
+  const anchor = new Date(ANCHOR_DATE); anchor.setHours(0,0,0,0);
   let streak = 0;
   let check = new Date(today);
-  for (let i = 0; i < 90; i++) {
-    if (check.getDay() === 0) { check.setDate(check.getDate()-1); continue; }
+  for (let i = 0; i < 365; i++) {
+    if (check < anchor) break; // don't count before CohnFit started
     const actDef = getActivityForDate(check);
     const act = findStravaActivity(check, actDef);
     const isToday = toDateStr(check) === todayStr;
@@ -500,7 +486,7 @@ function renderStats() {
       streak++;
       check.setDate(check.getDate()-1);
     } else if (isToday) {
-      // Today not done yet — skip without breaking streak
+      // Today not yet done — don't break streak, just skip
       check.setDate(check.getDate()-1);
     } else {
       break;
