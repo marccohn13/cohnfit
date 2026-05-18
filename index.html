@@ -657,7 +657,9 @@ function renderPlan(){
       const row=document.createElement('div');
       row.className='plan-day-row';
       row.style.background=isToday?'rgba(232,255,71,.04)':'';
-      row.title='Tap to change activity';
+      const isLocked = !!sa; // can't change days with a real recorded activity
+      row.title = isLocked ? '' : 'Tap to change activity';
+      row.style.cursor = isLocked ? 'default' : 'pointer';
       row.innerHTML=`
         <div class="plan-act-dot" style="background:${actDef.color}"></div>
         <div class="plan-day-name">${DAY_NAMES[date.getDay()].substring(0,3)}</div>
@@ -668,9 +670,9 @@ function renderPlan(){
         <div class="plan-act-target">${actDef.target}</div>
         <div style="margin-left:10px;flex-shrink:0;display:flex;align-items:center;gap:4px">
           ${statusHtml}
-          <span style="font-size:16px;color:var(--border);margin-left:4px">›</span>
+          ${!isLocked?'<span style="font-size:16px;color:var(--border);margin-left:4px">›</span>':''}
         </div>`;
-      row.onclick=()=>openActivityPicker(ds);
+      if(!isLocked) row.onclick=()=>openActivityPicker(ds);
       dl.appendChild(row);
     });
     card.appendChild(dl);container.appendChild(card);
